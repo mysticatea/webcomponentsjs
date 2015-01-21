@@ -243,3 +243,7 @@ suite('HTMLContentElement', function() {
                  document.createElement('content').constructor);
   });
 });
+
+htmlSuite('HTMLContentElement', function() {
+  htmlTest('../html/content-in-table-cell.html');
+});
