@@ -12,6 +12,7 @@
 
 <head>
   <script src="../../tools/chai/chai.js"></script>
+  <script>window.assert = chai.assert;</script>
   <script src="../../tools/htmltest.js"></script>
   <script src="../../../src/ShadowDOM/ShadowDOM.js"></script>
 </head>
@@ -21,18 +22,9 @@
   <template>
     <table>
       <tr>
-        <td></td>
         <td>
-          <content id="topContent" select="[data-dock='top']"></content>
+          <content id="content"></content>
         </td>
-        <td></td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>
-          <content select="[data-dock='bottom']"></content>
-        </td>
-        <td></td>
       </tr>
     </table>
   </template>
@@ -45,31 +37,27 @@
       var parent = document.getElementById("parent");
       var shadow = parent.createShadowRoot();
       var content = document.importNode(template.content, true);
+
       shadow.appendChild(content);
+      assert.isNotNull(parent.shadowRoot.querySelector("#content"), "initial");
     })();
   </script>
 
-
   <!-- Verify -->
   <script>
-    addEventListener("load", function() {
-      var assert = chai.assert;
+    setTimeout(function() {
       var parent = document.getElementById("parent");
-      var child = document.getElementById("child");
-      var content = parent.shadowRoot.querySelector("#topContent");
 
-      parent.appendChild(child);
+      assert.isNotNull(parent.shadowRoot.querySelector("#content"), "before");
+      parent.appendChild(document.getElementById("child"));
+      assert.isNotNull(parent.shadowRoot.querySelector("#content"), "after");
+      assert.isNotNull(document.getElementById("child"), "child");
 
-      assert.equal(
-        "<div id=\"child\" data-dock=\"top\">Child</div>",
-        parent.innerHTML);
-      assert.equal(document.getElementById("child"), child);
-
-      var distributed = content.getDistributedNodes();
-      assert.equal(distributed.length, 1);
-      assert.equal(distributed[0], child);
-
-      done();
-    });
+      setTimeout(function () {
+        assert.isNotNull(parent.shadowRoot.querySelector("#content"), "ending");
+        done();
+        setTimeout(function () { location.reload(true); }, 50);
+      }, 50);
+    }, 1500);
   </script>
 </body>
