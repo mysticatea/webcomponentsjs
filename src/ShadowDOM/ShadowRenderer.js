@@ -108,6 +108,7 @@
   var distributedNodesTable = new WeakMap();
   var destinationInsertionPointsTable = new WeakMap();
   var rendererForHostTable = new WeakMap();
+  var dummyFallbackTable = new WeakMap();
 
   function resetDistributedNodes(insertionPoint) {
     distributedNodesTable.set(insertionPoint, []);
@@ -118,6 +119,15 @@
     if (!rv)
       distributedNodesTable.set(insertionPoint, rv = []);
     return rv;
+  }
+
+  function getDummyFallback(insertionPoint) {
+    var dummy = dummyFallbackTable.get(insertionPoint);
+    if (!dummy) {
+      dummy = insertionPoint.ownerDocument.createComment("dummy-fallback");
+      dummyFallbackTable.set(insertionPoint, dummy);
+    }
+    return dummy;
   }
 
   function getChildNodesSnapshot(node) {
@@ -412,6 +422,15 @@
                child;
                child = child.nextSibling) {
             destributeNodeInto(child, content);
+            anyDistributed = true;
+          }
+
+          // IE11's text nodes in tables are probably weak referenced instance.
+          // So those can't keep nextSibling_ & previousSibling_.
+          // But, if distributed nodes exist, text node's instance will been kept.
+          if (!anyDistributed) {
+            var dummyFallback = getDummyFallback(content);
+            destributeNodeInto(dummyFallback, content);
           }
         }
 
